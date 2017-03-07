@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QCARConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="qcar_config.xsd">
+  <Tracking>
+    <ImageTarget name="-mrd-glissa-cherchesoleil-r" size="1.000000 1.000000" />
+    <ImageTarget name="arcanis-the-omnipotent-foil-p14742-174807_image" size="1.000000 1.000000" />
+    <ImageTarget name="elfe" size="1.000000 0.725586" />
+    <ImageTarget name="magic_bleu" size="1.000000 1.349144" />
+    <ImageTarget name="magic_rouge" size="1.000000 1.352708" />
+  </Tracking>
+</QCARConfig>
