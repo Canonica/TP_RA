@@ -8,6 +8,6 @@ public class GoblinEntity : Entity
     {
         base.TurnBeginning();
 
-        esquiveChance -= 20;
+        esquiveChance -= 10;
     }
 }

@@ -39,6 +39,7 @@ public class TargetLister : MonoBehaviour
 
     void SendData(GameObject entity)
     {
+        Debug.Log(entity);
         if (entity.GetComponentInChildren<Entity>())
         {
             CombatManager.instance.EntityFound(entity.GetComponentInChildren<Entity>());

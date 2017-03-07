@@ -1,10 +1,11 @@
-﻿using System.Collections;
+﻿using DG.Tweening;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.UI;
 public class Entity : MonoBehaviour
 {
-
+    //Ce script gère chaque entité avec ses caractéristiques, ses animations et sa mort.
     Animator animator;
     public float maxLife;
     public float currentLife;
@@ -21,6 +22,11 @@ public class Entity : MonoBehaviour
     public float esquiveChance;
 
     protected float initAttack;
+    protected float initCritChance;
+    protected float initCritMultiplier;
+    protected float initEsquiveChance;
+
+    public Image lifeImage;
 
     // Use this for initialization
     void Start()
@@ -28,6 +34,14 @@ public class Entity : MonoBehaviour
         animator = GetComponent<Animator>();
         currentLife = maxLife;
         initAttack = attackPower;
+        initCritChance = critChance;
+        initCritMultiplier = critMultiplier;
+        initEsquiveChance = esquiveChance;
+    }
+
+    private void OnEnable()
+    {
+        Debug.Log("Enabled");
     }
 
     private void Update()
@@ -38,8 +52,18 @@ public class Entity : MonoBehaviour
         }
     }
 
+    public void InitStats()
+    {
+        currentLife = maxLife;
+        attackPower = initAttack;
+        critChance = initCritChance;
+        critMultiplier = initCritMultiplier;
+        esquiveChance = initEsquiveChance;
+    }
+
     public void InitAnim()
     {
+        
         animator.SetTrigger("Revive1Trigger");
     }
 
@@ -54,34 +78,62 @@ public class Entity : MonoBehaviour
         currentLife = Mathf.Min(currentLife, maxLife);
     }
 
+    public void EnableDisableMesh(bool enable)
+    {
+        foreach(SkinnedMeshRenderer renderer in GetComponentsInChildren<SkinnedMeshRenderer>())
+        {
+            renderer.enabled = enable;
+        }
+    }
+
+    //Method for passive
     public virtual void TurnBeginning()
     {
 
     }
 
-    public void SubstractLife(float amount)
+    public void SubstractLife(float amount, bool isCrit)
     {
         if(Random.Range(0, 100) <= esquiveChance)
         {
             animator.SetTrigger(esquiveTriggerString);
-            Debug.Log("Esquive");
+            Instantiate(VFXManager.instance.GetVFX("VFX_AirDash"), transform.position, Quaternion.identity);
         }
         else
         {
             currentLife -= amount;
             currentLife = Mathf.Max(0, currentLife);
             animator.SetTrigger(getHitTriggerString);
+            lifeImage.DOFillAmount(currentLife / maxLife, 0.2f).SetEase(Ease.InOutSine);
+            TextManager.instance.ShakeScaleUI(lifeImage.transform.parent.transform, 1, 1, 10, 90);
+
+            if (!isCrit)
+            {
+                Instantiate(VFXManager.instance.GetVFX("VFX_HitLava"), transform.position, Quaternion.identity);
+            }
+            else
+            {
+                Instantiate(VFXManager.instance.GetVFX("VFX_MegaExplosion"), transform.position, Quaternion.identity);
+            }
+            
         }
         
         if (currentLife <= 0)
         {
             animator.SetTrigger("Death1Trigger");
             CombatManager.instance.EndRound(this);
+            
         }
         else
         {
             CombatManager.instance.EndTurn();
         }
+    }
+
+    //Method to init UILife
+    public void InitLifeUI()
+    {
+        lifeImage.DOFillAmount(1, 0.2f).SetEase(Ease.InOutSine);
     }
 
     public void LaunchAttack()
@@ -96,7 +148,7 @@ public class Entity : MonoBehaviour
                 Debug.Log("Coup critique ! (x" +critMultiplier+")" );
             }
 
-            target.SubstractLife(cC ? attackPower * critMultiplier : attackPower);
+            target.SubstractLife(cC ? attackPower * critMultiplier : attackPower, cC);
         }
     }
 }
