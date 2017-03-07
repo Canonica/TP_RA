@@ -5,6 +5,9 @@ using Vuforia;
 public class TargetLister : MonoBehaviour
 {
     public bool canDetect;
+
+    public int nbTrackable;
+
     // Use this for initialization
     void Start()
     {
@@ -14,17 +17,22 @@ public class TargetLister : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (canDetect)
+        nbTrackable = 0;
+
+        StateManager sm = TrackerManager.Instance.GetStateManager();
+        IEnumerable<TrackableBehaviour> tbs = sm.GetActiveTrackableBehaviours();
+        foreach (TrackableBehaviour tb in tbs)
         {
-            StateManager sm = TrackerManager.Instance.GetStateManager();
-            IEnumerable<TrackableBehaviour> tbs = sm.GetActiveTrackableBehaviours();
-            foreach (TrackableBehaviour tb in tbs)
+            string name = tb.TrackableName;
+            ImageTarget it = tb.Trackable as ImageTarget;
+            Vector2 size = it.GetSize();
+
+            if (canDetect)
             {
-                string name = tb.TrackableName;
-                ImageTarget it = tb.Trackable as ImageTarget;
-                Vector2 size = it.GetSize();
                 SendData(tb.gameObject);
             }
+
+            nbTrackable++;
         }
     }
 

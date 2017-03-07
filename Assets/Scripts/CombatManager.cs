@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class CombatManager : MonoBehaviour
 {
@@ -49,19 +50,28 @@ public class CombatManager : MonoBehaviour
 
     public void NewRound()
     {
-        player1Entity = null;
-        player2Entity = null;
         targetLister.canDetect = true;
         StartCoroutine(WaitForPlayers());
     }
 
     IEnumerator WaitForPlayers()
     {
-        while (!player1Entity || !player2Entity)
+        Debug.Log("Show player 1 card");
+        while (!player1Entity)
         {
             yield return new WaitForEndOfFrame();
         }
+        
+        Debug.Log("Show player 2 card");
+        while (!player2Entity)
+        {
+            yield return new WaitForEndOfFrame();
+        }
+
         AffectTargets();
+
+        targetLister.canDetect = false;
+
         NewTurn(TurnState.player1);
     }
 
@@ -70,10 +80,14 @@ public class CombatManager : MonoBehaviour
         if (player1Entity == null)
         {
             player1Entity = entity;
+            player1Entity.currentLife = player1Entity.maxLife;
+            player1Entity.InitAnim();
         }
         else if (player2Entity == null && entity.GetInstanceID() != player1Entity.GetInstanceID())
         {
             player2Entity = entity;
+            player2Entity.currentLife = player2Entity.maxLife;
+            player2Entity.InitAnim();
         }
     }
 
@@ -119,15 +133,64 @@ public class CombatManager : MonoBehaviour
 
     public void EndRound(Entity entity)
     {
+        bool gameEnd = false;
+
         if (entity == player1Entity)
         {
             player2Score++;
+            if (player2Score >= nbOfRounds / 2 + 1)
+            {
+                EndGame(TurnState.player2);
+                gameEnd = true;
+            }
         }
         else if (entity == player2Entity)
         {
             player1Score++;
+            if (player1Score >= nbOfRounds / 2 + 1)
+            {
+                EndGame(TurnState.player1);
+                gameEnd = true;
+            }
         }
+
+        if (!gameEnd)
+        {
+            StartCoroutine(StartNewRound());
+        }
+    }
+
+    IEnumerator StartNewRound()
+    {
+        player1Entity = null;
+        player2Entity = null;
+        currentTurnState = TurnState.Nobody;
+
+        Debug.Log("No card must be visible ! " + targetLister.nbTrackable);
+
+        while (targetLister.nbTrackable > 0)
+        {
+            yield return new WaitForEndOfFrame();
+        }
+
         NewRound();
+    }
+
+    void EndGame(TurnState winner)
+    {
+        Debug.Log(winner + " is the winner !");
+
+        StartCoroutine(WaitForClick());
+    }
+
+    IEnumerator WaitForClick()
+    {
+        while (!Input.GetMouseButtonUp(0))
+        {
+            yield return new WaitForEndOfFrame();
+        }
+
+        SceneManager.LoadScene(0);
     }
 
     public void AffectTargets()

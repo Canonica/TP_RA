@@ -7,21 +7,27 @@ public class Entity : MonoBehaviour
 
     Animator animator;
     public float maxLife;
-    float currentLife;
+    public float currentLife;
     public float range = 10f;
     public float attackPower;
     public Entity target;
 
     public string attackTriggerString;
     public string getHitTriggerString;
+    public string esquiveTriggerString;
 
     public float critChance;
     public float critMultiplier;
+    public float esquiveChance;
+
+    protected float initAttack;
+
     // Use this for initialization
     void Start()
     {
         animator = GetComponent<Animator>();
         currentLife = maxLife;
+        initAttack = attackPower;
     }
 
     private void Update()
@@ -30,6 +36,11 @@ public class Entity : MonoBehaviour
         {
             transform.LookAt(target.transform.position);
         }
+    }
+
+    public void InitAnim()
+    {
+        animator.SetTrigger("Revive1Trigger");
     }
 
     void OnMouseDown()
@@ -50,19 +61,22 @@ public class Entity : MonoBehaviour
 
     public void SubstractLife(float amount)
     {
-        currentLife -= amount;
-        currentLife = Mathf.Max(0, currentLife);
-        animator.SetTrigger(getHitTriggerString);
+        if(Random.Range(0, 100) <= esquiveChance)
+        {
+            animator.SetTrigger(esquiveTriggerString);
+            Debug.Log("Esquive");
+        }
+        else
+        {
+            currentLife -= amount;
+            currentLife = Mathf.Max(0, currentLife);
+            animator.SetTrigger(getHitTriggerString);
+        }
+        
         if (currentLife <= 0)
         {
-            Debug.Log("DEAD");
-            /*bool allPlayertrue = CombatManager.instance.listOfPlayer1.TrueForAll(b => b.GetComponent<Life>().currentLife <= 0);
-            bool allMonsterTrue = CombatManager.instance.listOfPlayer2.TrueForAll(b => b.GetComponent<Life>().currentLife <= 0);
-            
-            if (allPlayertrue || allMonsterTrue)
-            {
-                StartCoroutine("WaitForEndCombat", 2.0f);
-            }*/
+            animator.SetTrigger("Death1Trigger");
+            CombatManager.instance.EndRound(this);
         }
         else
         {
@@ -75,7 +89,14 @@ public class Entity : MonoBehaviour
         if (Vector3.Distance(target.transform.position, transform.position) < range && CombatManager.instance.CanAttack(this))
         {
             animator.SetTrigger(attackTriggerString);
-            target.SubstractLife(attackPower);
+
+            bool cC = Random.Range(0, 100) <= critChance;
+            if (cC)
+            {
+                Debug.Log("Coup critique ! (x" +critMultiplier+")" );
+            }
+
+            target.SubstractLife(cC ? attackPower * critMultiplier : attackPower);
         }
     }
 }
