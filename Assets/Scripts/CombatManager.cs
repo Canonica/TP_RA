@@ -3,7 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CombatManager : MonoBehaviour {
+public class CombatManager : MonoBehaviour
+{
     public static CombatManager instance;
 
     public Entity player1Entity;
@@ -40,7 +41,8 @@ public class CombatManager : MonoBehaviour {
         }
     }
     // Use this for initialization
-    void Start () {
+    void Start()
+    {
         targetLister = FindObjectOfType<TargetLister>();
         NewRound();
     }
@@ -55,7 +57,7 @@ public class CombatManager : MonoBehaviour {
 
     IEnumerator WaitForPlayers()
     {
-        while(!player1Entity || !player2Entity)
+        while (!player1Entity || !player2Entity)
         {
             yield return new WaitForEndOfFrame();
         }
@@ -65,11 +67,11 @@ public class CombatManager : MonoBehaviour {
 
     public void EntityFound(Entity entity)
     {
-        if(player1Entity == null)
+        if (player1Entity == null)
         {
             player1Entity = entity;
         }
-        else if(player2Entity == null && entity.GetInstanceID() != player1Entity.GetInstanceID())
+        else if (player2Entity == null && entity.GetInstanceID() != player1Entity.GetInstanceID())
         {
             player2Entity = entity;
         }
@@ -92,6 +94,14 @@ public class CombatManager : MonoBehaviour {
     {
         currentTurnState = state;
         previousTurnState = state;
+        if (currentTurnState == TurnState.player1)
+        {
+            player1Entity.TurnBeginning();
+        }
+        else if (currentTurnState == TurnState.player2)
+        {
+            player2Entity.TurnBeginning();
+        }
     }
 
     IEnumerator WaitBetweenTurns(float duration)
@@ -107,9 +117,22 @@ public class CombatManager : MonoBehaviour {
         StartCoroutine(WaitBetweenTurns(timeBetweenTurns));
     }
 
+    public void EndRound(Entity entity)
+    {
+        if (entity == player1Entity)
+        {
+            player2Score++;
+        }
+        else if (entity == player2Entity)
+        {
+            player1Score++;
+        }
+        NewRound();
+    }
+
     public void AffectTargets()
     {
-        if(player1Entity && player2Entity)
+        if (player1Entity && player2Entity)
         {
             player1Entity.target = player2Entity;
             player2Entity.target = player1Entity;

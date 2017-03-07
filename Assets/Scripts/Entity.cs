@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Entity : MonoBehaviour {
+public class Entity : MonoBehaviour
+{
 
     Animator animator;
     public float maxLife;
@@ -13,8 +14,12 @@ public class Entity : MonoBehaviour {
 
     public string attackTriggerString;
     public string getHitTriggerString;
+
+    public float critChance;
+    public float critMultiplier;
     // Use this for initialization
-    void Start () {
+    void Start()
+    {
         animator = GetComponent<Animator>();
         currentLife = maxLife;
     }
@@ -38,7 +43,12 @@ public class Entity : MonoBehaviour {
         currentLife = Mathf.Min(currentLife, maxLife);
     }
 
-    public virtual void SubstractLife(float amount)
+    public virtual void TurnBeginning()
+    {
+
+    }
+
+    public void SubstractLife(float amount)
     {
         currentLife -= amount;
         currentLife = Mathf.Max(0, currentLife);
@@ -62,7 +72,7 @@ public class Entity : MonoBehaviour {
 
     public void LaunchAttack()
     {
-        if(Vector3.Distance(target.transform.position, transform.position) < range && CombatManager.instance.CanAttack(this))
+        if (Vector3.Distance(target.transform.position, transform.position) < range && CombatManager.instance.CanAttack(this))
         {
             animator.SetTrigger(attackTriggerString);
             target.SubstractLife(attackPower);
